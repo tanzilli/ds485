@@ -1,4 +1,5 @@
 import smbus
+import time
 
 class lcd():
 	i2c_bus=-1

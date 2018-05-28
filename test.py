@@ -17,3 +17,7 @@ sw_ok=GPIO("J4.33","INPUT")
 backlight.on()
 
 LCD=lcd.lcd()
+LCD.putstring("    DS485")
+LCD.setcurpos(0,1)
+LCD.putstring("by Cipriani Tech")
+
