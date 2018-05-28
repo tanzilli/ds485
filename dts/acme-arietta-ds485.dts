@@ -38,15 +38,12 @@
 				status ="okay";
 			};
 			usart1: serial@f8020000 {
-				pinctrl-0 = <&pinctrl_usart1>;
+				pinctrl-0 = <&pinctrl_usart1 &pinctrl_usart1_rts &pinctrl_usart1_cts>;
 				linux,rs485-enabled-at-boot-time;
 				rs485-rts-delay = <0 0>;
 				status ="okay";
 			};
 			ssc0: ssc@f0010000 {
-				status = "okay";
-			};
-			usb2: gadget@f803c000 {
 				status = "okay";
 			};
 			dbgu: serial@fffff200 {
