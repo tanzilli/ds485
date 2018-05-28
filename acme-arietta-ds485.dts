@@ -1,0 +1,109 @@
+/* acme-arietta.dts - Device Tree file for Arietta G25 */
+/dts-v1/;
+#include "at91sam9g25.dtsi"
+/ {
+	model = "Acme Systems Arietta G25";
+	compatible = "acme,ariettag25", "atmel,at91sam9x5", "atmel,at91sam9";
+	aliases {
+		serial0 = &dbgu;
+	};
+	chosen {
+		stdout-path = "serial0:115200n8";
+		bootargs = "mem=128M  console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait";
+	};
+	memory {
+		reg = <0x20000000 0x8000000>;
+	};
+	clocks {
+		slow_xtal {
+			clock-frequency = <32768>;
+		};
+		main_xtal {
+			clock-frequency = <12000000>;
+		};
+	};
+	ahb {
+		apb {
+			mmc0: mmc@f0008000 {
+				pinctrl-0 = <
+				  &pinctrl_mmc0_slot0_clk_cmd_dat0
+				  &pinctrl_mmc0_slot0_dat1_3>;
+				status = "okay";
+				slot@0 {
+					reg = <0>;
+					bus-width = <4>;
+				};
+			};
+			i2c0: i2c@f8010000 {
+				status ="okay";
+			};
+			usart1: serial@f8020000 {
+				pinctrl-0 = <&pinctrl_usart1>;
+				linux,rs485-enabled-at-boot-time;
+				rs485-rts-delay = <0 0>;
+				status ="okay";
+			};
+			ssc0: ssc@f0010000 {
+				status = "okay";
+			};
+			usb2: gadget@f803c000 {
+				status = "okay";
+			};
+			dbgu: serial@fffff200 {
+				status = "okay";
+			};
+			pinctrl@fffff400 {
+				w1_0 {
+					pinctrl_w1_0: w1_0-0 {
+						/* pull up on */
+						atmel,pins = <2 2 0x0 0x1>;
+					};
+				};
+
+			};
+			rtc@fffffeb0 {
+				status = "okay";
+			};
+		};
+		usb0: ohci@00600000 {
+			status = "okay";
+			num-ports = <3>;
+		};
+		usb1: ehci@00700000 {
+			status = "okay";
+		};
+	};
+	leds {
+		compatible = "gpio-leds";
+		arietta_led {
+			label = "arietta_led";
+			gpios = <&pioB 8 GPIO_ACTIVE_HIGH>; /* PB8 */
+			linux,default-trigger = "heartbeat";
+
+		};
+	};
+	onewire@0 {
+		compatible = "w1-gpio";
+		gpios = <&pioA 24 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_w1_0>;
+	};
+	onewire@1 {
+		compatible = "w1-gpio";
+		gpios = <&pioA 25 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_w1_0>;
+	};
+	onewire@2 {
+		compatible = "w1-gpio";
+		gpios = <&pioA 26 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_w1_0>;
+	};
+	onewire@3 {
+		compatible = "w1-gpio";
+		gpios = <&pioA 27 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_w1_0>;
+	};
+};
