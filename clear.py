@@ -1,9 +1,4 @@
-from acmepins import GPIO 
-from time import sleep
-import lcd
+from lcd import lcd
 
-
-backlight=GPIO('J4.19','OUTPUT')
-backlight.on()
-
-LCD=lcd.lcd()
+display=lcd()
+display.backlight_on()

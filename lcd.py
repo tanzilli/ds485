@@ -1,9 +1,11 @@
 import smbus
 import time
+from acmepins import GPIO 
 
 class lcd():
 	i2c_bus=-1
 	lcd_address = 0x3E
+	backlight=None
 
 	# I2C expansion address can be:
 	# PCF8574T  0x27
@@ -21,6 +23,15 @@ class lcd():
 		self.sendcommand(0x6F) #Follower control
 		self.sendcommand(0x0C) #Display ON
 		self.clear()
+		self.backlight=GPIO('PA28','OUTPUT')
+		return
+
+	def backlight_on(self):
+		self.backlight.on()
+		return
+
+	def backlight_off(self):
+		self.backlight.off()
 		return
 
 	def sendcommand(self,value):
