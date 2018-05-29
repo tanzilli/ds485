@@ -11,7 +11,7 @@ def get_available_sensors():
 			sensors.append(sensor[3:])
 	return sensors
 
-def get_sensor_value(sensor):
+def get_temperature(sensor):
 	with open(BASE_DIRECTORY+"/"+SLAVE_PREFIX+sensor+"/"+SLAVE_FILE) as f:
 		data = f.readlines()
 
