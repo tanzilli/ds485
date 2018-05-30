@@ -1,30 +1,17 @@
-class Data():
-	temperatures={}
-	address=-1
-	a=111
+class DS485_data():
 	
-	def __init__(self,address):
-		self.address=address
-		self.temperatures["9999"]=23
-		
-	def __getstate__(self):
-		print "GetState dict",self.__dict__
-		return self.__dict__
+	def __init__(self,node_addr):
+		self.temperatures={}
+		self.node_addr=node_addr
 
-	def __setstate__(self, d):
-		print "SetState dict",self.__dict__
-		self.__dict__ = d
-
-	def save(self,sensor_id,temp):
+	def put(self,sensor_id,temp):
 		self.temperatures[sensor_id]=temp
 
-	def get_data(self):
+	def get(self):
 		return self.temperatures
 
-	def get_address(self):
-		return self.address
+	def get_node_addr(self):
+		return self.node_addr
 
-	def show(self):
-		print self.temperatures
-
-		
+	def __str__(self):
+		return str(self.temperatures)	
