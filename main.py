@@ -21,8 +21,6 @@ class Slave(threading.Thread):
 	def run(self):
 		while True:
 			incoming_message=self.link.receive()
-			#print "Messaggio in arrivo"
-			#print incoming_message
 			print self.link.get_message_counter(),self.link.get_error_counter()
 			
 			if incoming_message.get_target_node()==rs485_address:
@@ -31,6 +29,18 @@ class Slave(threading.Thread):
 						relay.on()
 					else:
 						relay.off()
+
+class SensorsReader(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+
+	def run(self):
+		while True:
+			sensors = ds18b20.get_available_sensors();
+			total_sensors=len(sensors)
+			print total_sensors
+			print sensors
+			time.sleep(10)
 
 class ScreenSaver(threading.Thread):
 	def __init__(self,timeout):
@@ -84,16 +94,24 @@ LAST_STATE=8
 current_state=0
 next_state=1
 rs485_address=2
-
+total_sensors=0
+current_sensor=-1
+sensors=[]
 
 link=RS485("/dev/ttyUSB0")
-thread1=Slave(link)
-thread1.start()
+SlaveThread=Slave(link)
+SlaveThread.start()
 
-ScreenSaverThread=ScreenSaver(10)
+ScreenSaverThread=ScreenSaver(60)
 ScreenSaverThread.start()
 
+SensorsThread=SensorsReader()
+SensorsThread.start()
+
+
 while True:
+	print total_sensors
+	print sensors
 	time.sleep(0.1)
 	a=key.get()
 	if a==key.KEY_ESC:
@@ -121,6 +139,9 @@ while True:
 				rs485_address-=1
 			else:	
 				rs485_address=100
+		if current_state==STATE_TEMPERATURES:
+			if current_sensor>=0:
+				current_sensor-=1
 
 	if a==key.KEY_RIGHT:
 		ScreenSaverThread.reset()
@@ -133,7 +154,10 @@ while True:
 				rs485_address+=1
 			else:	
 				rs485_address=1
-		
+		if current_state==STATE_TEMPERATURES:
+			if current_sensor<(len(sensors)-1):
+				current_sensor-=1
+	
 	if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 		display.clear()	
 		display.setdoublefont()
@@ -142,15 +166,15 @@ while True:
 
 	if next_state==STATE_TEMPERATURES:
 		display.clear()	
-		display.setdoublefont()
-		sensors = ds18b20.get_available_sensors();
-		display.putstring("Sensors: %d" % len(sensors))
-
-		#time.sleep(1)
-		#for sensor in sensors:
-		#	print("Sensor %s has temperature %.2f" % (sensor, ds18b20.get_temperature(sensor)))
-
+		if (current_sensor==-1):
+			display.putstring("Sensors: %d" % total_sensors)
+		else:
+			display.putstring(sensors[current_sensor])
+			
 		current_state=next_state
+
+		#	for sensor in sensors:
+		#		print("Sensor %s has temperature %.2f" % (sensor, ds18b20.get_temperature(sensor)))
 
 	if next_state==STATE_MYADDR:
 		display.clear()	
