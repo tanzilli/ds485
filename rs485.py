@@ -17,8 +17,11 @@ class RS485_payload():
 	def get(self):
 		return self.temperatures
 
-	def get_node_addr(self):
-		return self.node_addr
+	def get_target_node(self):
+		return self.target_node
+
+	def get_source_node(self):
+		return self.source_node
 
 	def __str__(self):
 		return str(self.temperatures)	
@@ -29,8 +32,8 @@ class RS485():
 		self.serial_device=serial_device
 		self.serial = serial.Serial(
 			port=serial_device, 
-			baudrate=9600, 
-			timeout=1,
+			baudrate=115200, 
+			timeout=0.1,
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_ONE,
 			bytesize=serial.EIGHTBITS
@@ -38,9 +41,17 @@ class RS485():
 		
 	def send(self,packet):
 		payload=pickle.dumps(packet)
+		print payload
 		self.serial.write(payload)
 		self.serial.flush()
 
 	def receive(self):
-		pass
-		
+		while True:
+			rx_buffer=self.serial.read(500)
+			if len(rx_buffer)==0:
+				continue
+			else:
+				message=pickle.loads(rx_buffer)
+				return message
+			
+
