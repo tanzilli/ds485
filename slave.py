@@ -1,16 +1,8 @@
-import serial
 import pickle
 import time
-from ds485 import DS485_data		
-
-ser = serial.Serial(
-	port="/dev/ttyUSB1", 
-	baudrate=9600, 
-	timeout=1,
-	parity=serial.PARITY_NONE,
-	stopbits=serial.STOPBITS_ONE,
-	bytesize=serial.EIGHTBITS
-)  
+from rs485 import RS485	
+from rs485 import RS485_payload
+import rs485
 
 while True:
 	a=ser.in_waiting

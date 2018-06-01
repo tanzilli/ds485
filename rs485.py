@@ -1,11 +1,15 @@
 import serial
 import pickle
 
-class DS485_data():
-	def __init__(self,source_node,dest_node):
+POLLING=1
+TEMPERATURES=2
+
+class RS485_payload():
+	def __init__(self,source_node,target_node,frame_type):
 		self.temperatures={}
 		self.source_node=source_node
-		self.dest_node=dest_node
+		self.target_node=target_node
+		self.frame_type=frame_type
 
 	def put(self,sensor_id,temp):
 		self.temperatures[sensor_id]=temp
@@ -21,10 +25,9 @@ class DS485_data():
 
 
 class RS485():
-	def __init__(self,node_addr,serial_device):
-		self.node_addr=node_addr
-
-		self.serial_out = serial.Serial(
+	def __init__(self,serial_device):
+		self.serial_device=serial_device
+		self.serial = serial.Serial(
 			port=serial_device, 
 			baudrate=9600, 
 			timeout=1,
@@ -33,11 +36,11 @@ class RS485():
 			bytesize=serial.EIGHTBITS
 		)  
 		
-		def send(self,ds485_data):
-			payload=pickle.dumps(data)
-			self.serial.write(payload)
-			self.serial.flush()
+	def send(self,packet):
+		payload=pickle.dumps(packet)
+		self.serial.write(payload)
+		self.serial.flush()
 
-		def receive(self):
-			pass
+	def receive(self):
+		pass
 		
