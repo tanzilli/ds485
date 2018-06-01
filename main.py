@@ -25,13 +25,33 @@ class Slave(threading.Thread):
 			#print incoming_message
 			print self.link.get_message_counter(),self.link.get_error_counter()
 			
-			if incoming_message.get_target_node()==2:
+			if incoming_message.get_target_node()==rs485_address:
 				if incoming_message.get_frame_type()==rs485.RELAY:
 					if incoming_message.get_relay_state()==1:
 						relay.on()
 					else:
 						relay.off()
 
+class ScreenSaver(threading.Thread):
+	def __init__(self,timeout):
+		threading.Thread.__init__(self)
+		self.timeout=timeout
+		self.counter=0
+
+	def run(self):
+		while True:
+			time.sleep(1)
+			if self.counter>=self.timeout:
+				display.backlight_off()
+			else:	
+				display.backlight_on()
+				self.counter+=1
+
+	def reset(self):
+		self.counter=0
+		display.backlight_on()
+		
+	
 def myip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
@@ -52,63 +72,90 @@ relay=GPIO("J4.29","OUTPUT")
 
 STATE_INIT=0
 STATE_WELCOME=1
-STATE_TEMP=2
-STATE_MYIP=3
-STATE_UPTIME=4
-STATE_ERRORS=5
-STATE_TEST_RELAY=6
-STATE_BACKLIGHT=7
-LAST_STATE=7
+STATE_MYADDR=2
+STATE_TEMPERATURES=3
+STATE_MYIP=4
+STATE_UPTIME=5
+STATE_ERRORS=6
+STATE_TEST_RELAY=7
+STATE_BACKLIGHT=8
+LAST_STATE=8
 
 current_state=0
 next_state=1
+rs485_address=2
+
 
 link=RS485("/dev/ttyUSB0")
 thread1=Slave(link)
 thread1.start()
 
+ScreenSaverThread=ScreenSaver(10)
+ScreenSaverThread.start()
+
 while True:
 	time.sleep(0.1)
 	a=key.get()
-	if a==key.KEY_LEFT:
+	if a==key.KEY_ESC:
+		ScreenSaverThread.reset()
 		if current_state>1:
 			next_state=current_state-1
+		else:
+			next_state=LAST_STATE	
 			
-	if a==key.KEY_RIGHT:
+	if a==key.KEY_OK:
+		ScreenSaverThread.reset()
 		if current_state<LAST_STATE:
 			next_state=current_state+1
+		else:
+			next_state=1	
 			
-	if a==key.KEY_ESC:
+	if a==key.KEY_LEFT:
+		ScreenSaverThread.reset()
 		if current_state==STATE_TEST_RELAY:
 			relay.off()
 		if current_state==STATE_BACKLIGHT:
 			display.backlight_off()
+		if current_state==STATE_MYADDR:
+			if rs485_address>1:
+				rs485_address-=1
+			else:	
+				rs485_address=100
 
-	if a==key.KEY_OK:
+	if a==key.KEY_RIGHT:
+		ScreenSaverThread.reset()
 		if current_state==STATE_TEST_RELAY:
 			relay.on()
 		if current_state==STATE_BACKLIGHT:
 			display.backlight_on()
+		if current_state==STATE_MYADDR:
+			if rs485_address<100:
+				rs485_address+=1
+			else:	
+				rs485_address=1
 		
 	if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 		display.clear()	
-		display.putstring("DS485")		
-		display.setcurpos(0,1)
-		display.putstring("Ver 0.03")
+		display.setdoublefont()
+		display.putstring("DS-485 -- V0.06")		
 		current_state=next_state
 
-	if next_state==STATE_TEMP:
+	if next_state==STATE_TEMPERATURES:
 		display.clear()	
-		display.putstring("Temperature")		
-
+		display.setdoublefont()
 		sensors = ds18b20.get_available_sensors();
-		display.setcurpos(0,1)
-		display.putstring("Total sensor %d" % len(sensors))
+		display.putstring("Sensors: %d" % len(sensors))
 
 		#time.sleep(1)
 		#for sensor in sensors:
 		#	print("Sensor %s has temperature %.2f" % (sensor, ds18b20.get_temperature(sensor)))
 
+		current_state=next_state
+
+	if next_state==STATE_MYADDR:
+		display.clear()	
+		display.setdoublefont()
+		display.putstring("Addr: %d" % rs485_address)
 		current_state=next_state
 
 	if next_state==STATE_MYIP:
@@ -137,14 +184,14 @@ while True:
 		display.clear()	
 		display.putstring("Relay")
 		display.setcurpos(0,1)
-		display.putstring("ESC=OFF    OK=ON")
+		display.putstring("OFF <-     -> ON")
 		current_state=next_state
 
 	if next_state==STATE_BACKLIGHT and current_state!=STATE_BACKLIGHT:
 		display.clear()	
 		display.putstring("Backlight")
 		display.setcurpos(0,1)
-		display.putstring("ESC=OFF    OK=ON")
+		display.putstring("OFF <-     -> ON")
 		current_state=next_state
 
 	continue

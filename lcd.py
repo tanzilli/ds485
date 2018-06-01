@@ -45,6 +45,7 @@ class lcd():
 	def clear(self):
 		self.sendcommand(0x01)
 		time.sleep(0.001)
+		self.setsinglefont()
 		return
 
 	def home(self):
