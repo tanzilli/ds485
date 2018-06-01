@@ -3,6 +3,7 @@ import pickle
 
 POLLING=1
 TEMPERATURES=2
+RELAY=3
 
 class RS485_payload():
 	def __init__(self,source_node,target_node,frame_type):
@@ -10,6 +11,7 @@ class RS485_payload():
 		self.source_node=source_node
 		self.target_node=target_node
 		self.frame_type=frame_type
+		self.relay_state=0
 
 	def put(self,sensor_id,temp):
 		self.temperatures[sensor_id]=temp
@@ -23,35 +25,62 @@ class RS485_payload():
 	def get_source_node(self):
 		return self.source_node
 
+	def get_frame_type(self):
+		return self.frame_type
+
+	def set_relay_state(self,state):
+		self.relay_state=state
+
+	def get_relay_state(self):
+		return self.relay_state
+
 	def __str__(self):
 		return str(self.temperatures)	
 
-
 class RS485():
 	def __init__(self,serial_device):
+		self.error_counter=0
+		self.message_counter=0
 		self.serial_device=serial_device
 		self.serial = serial.Serial(
 			port=serial_device, 
 			baudrate=115200, 
-			timeout=0.1,
+			timeout=0.2,
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_ONE,
 			bytesize=serial.EIGHTBITS
 		)  
+
+	def get_message_counter(self):
+		return self.message_counter
+
+	def get_error_counter(self):
+		return self.error_counter
 		
 	def send(self,packet):
 		payload=pickle.dumps(packet)
-		print payload
+		#print payload
+		self.serial.reset_output_buffer()
 		self.serial.write(payload)
 		self.serial.flush()
 
 	def receive(self):
+		self.serial.reset_input_buffer()
 		while True:
 			rx_buffer=self.serial.read(500)
+			#print len(rx_buffer)
 			if len(rx_buffer)==0:
 				continue
 			else:
-				message=pickle.loads(rx_buffer)
+				try:
+					message=pickle.loads(rx_buffer)
+					#message="null"
+				except:
+					self.error_counter+=1
+					continue	
+
+				self.message_counter+=1
 				return message
+				
 			
 
