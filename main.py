@@ -157,7 +157,9 @@ link=rs485.Link("/dev/ttyUSB0")
 LinkManagerThread=LinkManager(link)
 LinkManagerThread.start()
 
-ScreenSaverThread=ScreenSaver(-1)
+# Screen saver delay in sec
+# -1 = Disabled
+ScreenSaverThread=ScreenSaver(120)
 ScreenSaverThread.start()
 
 SensorsReaderThread=SensorsReader()
