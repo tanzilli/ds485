@@ -1,22 +1,21 @@
 import serial
 import pickle
 
-POLLING=1
-TEMPERATURES=2
+TEMP=2
 RELAY=3
 
 class Payload():
 	def __init__(self,target_node,frame_type):
-		self.temperatures={}
+		self.sensors={}
 		self.target_node=target_node
 		self.frame_type=frame_type
 		self.relay_state=0
 
-	def put(self,sensor_id,temp):
-		self.temperatures[sensor_id]=temp
+	def put(self,sensors):
+		self.sensors=sensors
 
 	def get(self):
-		return self.temperatures
+		return self.sensors
 
 	def get_target_node(self):
 		return self.target_node
@@ -31,7 +30,7 @@ class Payload():
 		return self.relay_state
 
 	def __str__(self):
-		return str(self.temperatures)	
+		return str(self.sensors)	
 
 class Link():
 	def __init__(self,serial_device):
@@ -55,7 +54,6 @@ class Link():
 		
 	def send(self,packet):
 		payload=pickle.dumps(packet)
-		#print payload
 		self.serial.reset_output_buffer()
 		self.serial.write(payload)
 		self.serial.flush()
@@ -64,13 +62,11 @@ class Link():
 		self.serial.reset_input_buffer()
 		while True:
 			rx_buffer=self.serial.read(500)
-			#print len(rx_buffer)
 			if len(rx_buffer)==0:
-				return -1
+				return None
 			else:
 				try:
 					message=pickle.loads(rx_buffer)
-					#message="null"
 				except:
 					self.error_counter+=1
 					continue	

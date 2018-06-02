@@ -70,17 +70,24 @@ class LinkManager(threading.Thread):
 		while self.stop_flag==False:
 			incoming_message=self.link.receive()
 			
-			if incoming_message==-1:
+			if incoming_message==None:
 				continue
 				
-			print self.link.get_message_counter(),self.link.get_error_counter()
+			# print self.link.get_message_counter(),self.link.get_error_counter()
 			
 			if incoming_message.get_target_node()==rs485_address:
+
 				if incoming_message.get_frame_type()==rs485.RELAY:
 					if incoming_message.get_relay_state()==1:
 						relay.on()
 					else:
 						relay.off()
+
+				if incoming_message.get_frame_type()==rs485.TEMP:
+					outgoing_message=rs485.Payload(target_node=0,frame_type=rs485.TEMP)
+					sensors=SensorsReaderThread.sensors_list()
+					outgoing_message.put(sensors)
+					self.link.send(outgoing_message)
 						
 	def stop(self):
 		self.stop_flag=True	
