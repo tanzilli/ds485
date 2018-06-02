@@ -5,10 +5,9 @@ POLLING=1
 TEMPERATURES=2
 RELAY=3
 
-class RS485_payload():
-	def __init__(self,source_node,target_node,frame_type):
+class Payload():
+	def __init__(self,target_node,frame_type):
 		self.temperatures={}
-		self.source_node=source_node
 		self.target_node=target_node
 		self.frame_type=frame_type
 		self.relay_state=0
@@ -22,9 +21,6 @@ class RS485_payload():
 	def get_target_node(self):
 		return self.target_node
 
-	def get_source_node(self):
-		return self.source_node
-
 	def get_frame_type(self):
 		return self.frame_type
 
@@ -37,7 +33,7 @@ class RS485_payload():
 	def __str__(self):
 		return str(self.temperatures)	
 
-class RS485():
+class Link():
 	def __init__(self,serial_device):
 		self.error_counter=0
 		self.message_counter=0

@@ -6,14 +6,11 @@ import keys
 from acmepins import GPIO 
 import socket
 from datetime import timedelta
-from rs485 import RS485	
-from rs485 import RS485_payload
 import rs485
 import threading
 import os
 
 class SensorsReader(threading.Thread):
-	
 	def __init__(self):
 		threading.Thread.__init__(self)
 		self.stop_flag=False
@@ -63,8 +60,7 @@ class SensorsReader(threading.Thread):
 	def stop(self):
 		self.stop_flag=True	
 
-class Slave(threading.Thread):
-
+class LinkManager(threading.Thread):
 	def __init__(self,link):
 		threading.Thread.__init__(self)
 		self.stop_flag=False
@@ -90,7 +86,6 @@ class Slave(threading.Thread):
 		self.stop_flag=True	
 
 class ScreenSaver(threading.Thread):
-
 	def __init__(self,timeout):
 		threading.Thread.__init__(self)
 		self.timeout=timeout
@@ -151,9 +146,9 @@ total_sensors=0
 current_sensor=-1
 sensors=[]
 
-link=RS485("/dev/ttyUSB0")
-SlaveThread=Slave(link)
-SlaveThread.start()
+link=rs485.Link("/dev/ttyUSB0")
+LinkManagerThread=LinkManager(link)
+LinkManagerThread.start()
 
 ScreenSaverThread=ScreenSaver(-1)
 ScreenSaverThread.start()
@@ -213,7 +208,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.09")		
+			display.putstring("DS-485 -- V0.10")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
@@ -286,11 +281,11 @@ except KeyboardInterrupt:
 	print "Exit"
 
 finally:	
-	SlaveThread.stop()
+	LinkManagerThread.stop()
 	ScreenSaverThread.stop()
 	SensorsReaderThread.stop()
 	
-	SlaveThread.join()
+	LinkManagerThread.join()
 	ScreenSaverThread.join()
 	SensorsReaderThread.join()
 	
