@@ -41,3 +41,9 @@ class KEYS():
 			return self.KEY_OK
 		
 		return self.KEY_NONE	
+		
+	def hit(self):
+		if self.esc.get_value()==0 or self.left.get_value()==0 or self.right.get_value()==0 or self.ok.get_value()==0:
+			return True
+		else:
+			return False				

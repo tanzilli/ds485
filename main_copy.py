@@ -17,52 +17,39 @@ class SensorsReader(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 		self.stop_flag=False
-		self.reading=False
-		self.writing=False
-		self.sensors = {}
-		
+
 	def run(self):
 		while self.stop_flag==False:
-			sensors_live = {}
-			print "---"
+			self.sensors = []
 			for sensor in os.listdir("/sys/bus/w1/devices"):
 				if sensor.startswith("28-"):
-					sensor_id=sensor[3:]
-					sensors_live[sensor_id]=self.get_temperature(sensor_id)
-					print sensor_id,sensors_live[sensor_id]
-					
-			while self.reading==True:
-				print "Wait"
-				time.sleep(0.1)
-			self.writing=True
-			self.sensors=sensors_live
-			self.writing=False
+					self.sensors.append(sensor[3:])
+			print self.sensors
+			time.sleep(1)
 	
-	def sensors_list(self):
-		self.reading=True
-		while self.writing==True:
-			time.sleep(0.1)
-		ret=self.sensors
-		self.reading=False
-		return ret
-
-	def sensors_available(self):
-		return len(self.sensors)
-
-	def get_temperature(self,sensor_id):
-		try:
-			with open("/sys/bus/w1/devices/28-" + sensor_id + "/w1_slave") as f:
-				data = f.readlines()
-			if data[0].strip()[-3:] != "YES":
-				return 999
-			else:	
-				return float(data[1].split("=")[1])*0.001
-		except:
-			return 999
-
 	def stop(self):
 		self.stop_flag=True	
 
+	def sensors_list(self):
+		return self.sensors
+
+	def sensors_available(self):
+		return len(self.sensors)
+		
+	def sensors_detected(self):
+		return len(self.sensors)
+
+	def get_temperature(sensor_id):
+		with open("/sys/bus/w1/devices/28-" + sensor_id + "/w1_slave") as f:
+			data = f.readlines()
+
+		if data[0].strip()[-3:] != "YES":
+			raise SensorNotReadyError()
+			
+		return float(data[1].split("=")[1])*0.001
+
+	
+		
 class Slave(threading.Thread):
 
 	def __init__(self,link):
@@ -136,7 +123,7 @@ relay=GPIO("J4.29","OUTPUT")
 STATE_INIT=0
 STATE_WELCOME=1
 STATE_MYADDR=2
-STATE_TEMPERATURES=4
+STATE_TEMPERATURES=3
 STATE_MYIP=4
 STATE_UPTIME=5
 STATE_ERRORS=6
@@ -213,30 +200,29 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.09")		
+			display.putstring("DS-485 -- V0.07")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
-			sensors=SensorsReaderThread.sensors_list();	
+			display.clear()	
 
-			counter=0
-			for sensor_id in sensors:
-				display.clear()	
-				if sensors[sensor_id]!=999:
-					counter+=1
-					display.putstring("%2d- %s" % (counter,sensor_id))
-					display.setcurpos(0,1)
-					display.putstring("    %.2f C" % sensors[sensor_id])
+			try:
+				display.putstring("%s" % SensorsReaderThread.sensors[0])
+				display.setcurpos(0,1)
 				
-					for i in range(10):	
-						time.sleep(0.1)
-						if key.hit():
-							break
-
-				if key.hit():
-					break
-
+				t=ds18b20.get_temperature(SensorsReaderThread.sensors[0])
+				if t==-999:
+					display.putstring("Not available")
+				else:
+					display.putstring("%.2f" % t)
+				
+			except IndexError:
+				display.putstring("No sensors")
+				
 			current_state=next_state
+
+			#	for sensor in sensors:
+			#		print("Sensor %s has temperature %.2f" % (sensor, ds18b20.get_temperature(sensor)))
 
 		if next_state==STATE_MYADDR:
 			display.clear()	
