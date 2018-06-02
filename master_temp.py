@@ -4,11 +4,8 @@ import time
 # Apre la linea seriale sulla RS485
 link=rs485.Link("/dev/ttyS2")
 
-# Invia la richiesta di lettura ad un nodo
-message=rs485.Payload(2)
-
 while True:
-	# Invia la richiesta di lettura ad un nodo
+	# Invia la richiesta di lettura al nodo n.2
 	message=rs485.Payload(2)
 	link.send(message)
 
