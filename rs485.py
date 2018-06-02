@@ -4,7 +4,7 @@ import pickle
 TEMP=2
 RELAY=3
 
-class Payload():
+class Packet():
 	def __init__(self,target_node,frame_type=TEMP):
 		self.sensors={}
 		self.target_node=target_node

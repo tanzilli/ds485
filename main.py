@@ -73,7 +73,7 @@ class LinkManager(threading.Thread):
 			if incoming_message==None:
 				continue
 				
-			# print self.link.get_message_counter(),self.link.get_error_counter()
+			#  print self.link.get_message_counter(),self.link.get_error_counter()
 			
 			if incoming_message.get_target_node()==rs485_address:
 
@@ -84,7 +84,7 @@ class LinkManager(threading.Thread):
 						relay.off()
 
 				if incoming_message.get_frame_type()==rs485.TEMP:
-					outgoing_message=rs485.Payload(target_node=0,frame_type=rs485.TEMP)
+					outgoing_message=rs485.Packet(target_node=0,frame_type=rs485.TEMP)
 					sensors=SensorsReaderThread.sensors_list()
 					outgoing_message.put(sensors)
 					self.link.send(outgoing_message)
