@@ -5,12 +5,12 @@ import time
 import keys
 from acmepins import GPIO 
 import socket
-import ds18b20
 from datetime import timedelta
 from rs485 import RS485	
 from rs485 import RS485_payload
 import rs485
 import threading
+import os
 
 class SensorsReader(threading.Thread):
 	
@@ -20,18 +20,35 @@ class SensorsReader(threading.Thread):
 
 	def run(self):
 		while self.stop_flag==False:
-			self.sensors = ds18b20.get_available_sensors();
+			self.sensors = []
+			for sensor in os.listdir("/sys/bus/w1/devices"):
+				if sensor.startswith("28-"):
+					self.sensors.append(sensor[3:])
 			print self.sensors
-			time.sleep(2)
+			time.sleep(1)
 	
 	def stop(self):
 		self.stop_flag=True	
 
-	def sensor_list(self):
+	def sensors_list(self):
 		return self.sensors
-		
-	def sensor_detected(self):
+
+	def sensors_available(self):
 		return len(self.sensors)
+		
+	def sensors_detected(self):
+		return len(self.sensors)
+
+	def get_temperature(sensor_id):
+		with open("/sys/bus/w1/devices/28-" + sensor_id + "/w1_slave") as f:
+			data = f.readlines()
+
+		if data[0].strip()[-3:] != "YES":
+			raise SensorNotReadyError()
+			
+		return float(data[1].split("=")[1])*0.001
+
+	
 		
 class Slave(threading.Thread):
 
@@ -126,10 +143,11 @@ SlaveThread.start()
 ScreenSaverThread=ScreenSaver(60)
 ScreenSaverThread.start()
 
-SensorsThread=SensorsReader()
-SensorsThread.start()
+SensorsReaderThread=SensorsReader()
+SensorsReaderThread.start()
 
 try:
+	delay_temperature=0
 	while True:
 		time.sleep(0.1)
 		a=key.get()
@@ -180,15 +198,24 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.06")		
+			display.putstring("DS-485 -- V0.07")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
 			display.clear()	
-			if (current_sensor==-1):
-				display.putstring("Sensors: %d" % total_sensors)
-			else:
-				display.putstring(sensors[current_sensor])
+
+			try:
+				display.putstring("%s" % SensorsReaderThread.sensors[0])
+				display.setcurpos(0,1)
+				
+				t=ds18b20.get_temperature(SensorsReaderThread.sensors[0])
+				if t==-999:
+					display.putstring("Not available")
+				else:
+					display.putstring("%.2f" % t)
+				
+			except IndexError:
+				display.putstring("No sensors")
 				
 			current_state=next_state
 
@@ -245,11 +272,11 @@ except KeyboardInterrupt:
 finally:	
 	SlaveThread.stop()
 	ScreenSaverThread.stop()
-	SensorsThread.stop()
+	SensorsReaderThread.stop()
 	
 	SlaveThread.join()
 	ScreenSaverThread.join()
-	SensorsThread.join()
+	SensorsReaderThread.join()
 	
 	display.clear()	
 	display.setdoublefont()
