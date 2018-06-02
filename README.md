@@ -1,4 +1,4 @@
-#DS485 firmware
+# DS485 firmware
 
 * main.py
   Programma da lanciare sulla scheda DS485
