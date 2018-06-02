@@ -12,17 +12,41 @@ from rs485 import RS485_payload
 import rs485
 import threading
 
-
-class Slave(threading.Thread):
-	stop=False
+class SensorsReader(threading.Thread):
 	
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.stop_flag=False
+
+	def run(self):
+		while self.stop_flag==False:
+			self.sensors = ds18b20.get_available_sensors();
+			print self.sensors
+			time.sleep(2)
+	
+	def stop(self):
+		self.stop_flag=True	
+
+	def sensor_list(self):
+		return self.sensors
+		
+	def sensor_detected(self):
+		return len(self.sensors)
+		
+class Slave(threading.Thread):
+
 	def __init__(self,link):
 		threading.Thread.__init__(self)
+		self.stop_flag=False
 		self.link=link
 
 	def run(self):
-		while self.stop==False:
+		while self.stop_flag==False:
 			incoming_message=self.link.receive()
+			
+			if incoming_message==-1:
+				continue
+				
 			print self.link.get_message_counter(),self.link.get_error_counter()
 			
 			if incoming_message.get_target_node()==rs485_address:
@@ -31,36 +55,20 @@ class Slave(threading.Thread):
 						relay.on()
 					else:
 						relay.off()
+						
 	def stop(self):
-		self.stop=True		
-
-class SensorsReader(threading.Thread):
-	stop=False
-
-	def __init__(self):
-		threading.Thread.__init__(self)
-
-	def run(self):
-		while self.stop==False:
-			sensors = ds18b20.get_available_sensors();
-			total_sensors=len(sensors)
-			print total_sensors
-			print sensors
-			time.sleep(10)
-	
-	def stop(self):
-		self.stop=True		
+		self.stop_flag=True	
 
 class ScreenSaver(threading.Thread):
-	stop=False
 
 	def __init__(self,timeout):
 		threading.Thread.__init__(self)
 		self.timeout=timeout
 		self.counter=0
+		self.stop_flag=False
 
 	def run(self):
-		while self.stop==False:
+		while self.stop_flag==False:
 			time.sleep(1)
 			if self.counter>=self.timeout:
 				display.backlight_off()
@@ -73,7 +81,7 @@ class ScreenSaver(threading.Thread):
 		display.backlight_on()
 		
 	def stop(self):
-		self.stop=True		
+		self.stop_flag=True	
 	
 def myip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -123,8 +131,6 @@ SensorsThread.start()
 
 try:
 	while True:
-		print total_sensors
-		print sensors
 		time.sleep(0.1)
 		a=key.get()
 		if a==key.KEY_ESC:
@@ -233,7 +239,7 @@ try:
 
 		continue
 
-except:
+except KeyboardInterrupt:
 	print "Exit"
 
 finally:	
@@ -248,7 +254,7 @@ finally:
 	display.clear()	
 	display.setdoublefont()
 	display.putstring("Bye, Bye... :-)")
-	time.sleep(2)
+	time.sleep(1)
 	display.backlight_off()
 	display.clear()	
 	

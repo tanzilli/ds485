@@ -70,7 +70,7 @@ class RS485():
 			rx_buffer=self.serial.read(500)
 			#print len(rx_buffer)
 			if len(rx_buffer)==0:
-				continue
+				return -1
 			else:
 				try:
 					message=pickle.loads(rx_buffer)
