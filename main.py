@@ -71,20 +71,14 @@ class LinkManager(threading.Thread):
 		while self.stop_flag==False:
 			incoming_message=self.link.receive()
 			
-			print "-"
-
 			if incoming_message==None:
 				continue
-				
-			print "--"
 				
 			#  print self.link.get_message_counter(),self.link.get_error_counter()
 			
 			# If any error on packet incomes, just continue
 			try:
 				if incoming_message.get_target_node()==rs485_address:
-
-					print "---"
 
 					if incoming_message.get_frame_type()==rs485.RELAY:
 						if incoming_message.get_relay_state()==1:
@@ -258,7 +252,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.11")		
+			display.putstring("DS-485 -- V0.12")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:

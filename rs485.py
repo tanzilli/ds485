@@ -1,5 +1,6 @@
 import serial
 import pickle
+import time
 
 TEMP=2
 RELAY=3
@@ -40,7 +41,7 @@ class Link():
 		self.serial = serial.Serial(
 			port=serial_device, 
 			baudrate=115200, 
-			timeout=0.2,
+			timeout=0.5,
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_ONE,
 			bytesize=serial.EIGHTBITS
