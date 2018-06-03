@@ -21,12 +21,12 @@ class SensorsReader(threading.Thread):
 	def run(self):
 		while self.stop_flag==False:
 			sensors_live = {}
-			print "---"
+			#print "---"
 			for sensor in os.listdir("/sys/bus/w1/devices"):
 				if sensor.startswith("28-"):
 					sensor_id=sensor[3:]
 					sensors_live[sensor_id]=self.get_temperature(sensor_id)
-					print sensor_id,sensors_live[sensor_id]
+					#print sensor_id,sensors_live[sensor_id]
 					
 			while self.reading==True:
 				print "Wait"
@@ -70,25 +70,35 @@ class LinkManager(threading.Thread):
 		while self.stop_flag==False:
 			incoming_message=self.link.receive()
 			
+			print "-"
+
 			if incoming_message==None:
 				continue
 				
+			print "--"
+				
 			#  print self.link.get_message_counter(),self.link.get_error_counter()
 			
-			if incoming_message.get_target_node()==rs485_address:
+			# If any error on packet incomes, just continue
+			try:
+				if incoming_message.get_target_node()==rs485_address:
 
-				if incoming_message.get_frame_type()==rs485.RELAY:
-					if incoming_message.get_relay_state()==1:
-						relay.on()
-					else:
-						relay.off()
+					print "---"
 
-				if incoming_message.get_frame_type()==rs485.TEMP:
-					outgoing_message=rs485.Packet(target_node=0,frame_type=rs485.TEMP)
-					sensors=SensorsReaderThread.sensors_list()
-					outgoing_message.put(sensors)
-					self.link.send(outgoing_message)
-						
+					if incoming_message.get_frame_type()==rs485.RELAY:
+						if incoming_message.get_relay_state()==1:
+							relay.on()
+						else:
+							relay.off()
+
+					if incoming_message.get_frame_type()==rs485.TEMP:
+						outgoing_message=rs485.Packet(target_node=0,frame_type=rs485.TEMP)
+						sensors=SensorsReaderThread.sensors_list()
+						outgoing_message.put(sensors)
+						self.link.send(outgoing_message)
+			except:
+				continue
+									
 	def stop(self):
 		self.stop_flag=True	
 
@@ -118,10 +128,13 @@ class ScreenSaver(threading.Thread):
 		self.stop_flag=True	
 	
 def myip():
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
-	local_ip_address = s.getsockname()[0]
-	return local_ip_address
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
+		local_ip_address = s.getsockname()[0]
+		return local_ip_address
+	except:
+		return "NO IP"	
 
 def uptime():
 	with open('/proc/uptime', 'r') as f:
