@@ -9,6 +9,7 @@ from datetime import timedelta
 import rs485
 import threading
 import os
+from ConfigParser import SafeConfigParser
 
 class SensorsReader(threading.Thread):
 	def __init__(self):
@@ -143,6 +144,8 @@ def uptime():
 
 	return(uptime_string)
 
+CONFIG_FILE="ds485.ini"
+
 display=lcd.lcd()
 display.backlight_on()
 key=keys.KEYS()
@@ -161,10 +164,22 @@ LAST_STATE=8
 
 current_state=0
 next_state=1
-rs485_address=2
+MAX_RS485_ADDRESS=999
 total_sensors=0
 current_sensor=-1
 sensors=[]
+
+# Read .ini configuration file
+parser = SafeConfigParser()
+if os.path.isfile(CONFIG_FILE)==False: 
+	parser.add_section('RS485')
+	parser.set("RS485","Address","1")
+	fd = open(CONFIG_FILE,'w')
+	parser.write(fd)
+	fd.close()
+parser.read(CONFIG_FILE)
+rs485_address=int(parser.get('RS485','Address'))
+
 
 link=rs485.Link("/dev/ttyS2")
 LinkManagerThread=LinkManager(link)
@@ -207,7 +222,13 @@ try:
 				if rs485_address>1:
 					rs485_address-=1
 				else:	
-					rs485_address=100
+					rs485_address=MAX_RS485_ADDRESS
+					
+				parser.set("RS485","Address",str(rs485_address))
+				fd = open(CONFIG_FILE,'w')
+				parser.write(fd)
+				fd.close()
+
 			if current_state==STATE_TEMPERATURES:
 				if current_sensor>=0:
 					current_sensor-=1
@@ -219,10 +240,17 @@ try:
 			if current_state==STATE_BACKLIGHT:
 				display.backlight_on()
 			if current_state==STATE_MYADDR:
-				if rs485_address<100:
+				if rs485_address<MAX_RS485_ADDRESS:
 					rs485_address+=1
 				else:	
 					rs485_address=1
+
+				parser.set("RS485","Address",str(rs485_address))
+				fd = open(CONFIG_FILE,'w')
+				parser.write(fd)
+				fd.close()
+
+
 			if current_state==STATE_TEMPERATURES:
 				if current_sensor<(len(sensors)-1):
 					current_sensor-=1
@@ -230,7 +258,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.10")		
+			display.putstring("DS-485 -- V0.11")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
