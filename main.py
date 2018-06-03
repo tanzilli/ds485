@@ -153,7 +153,7 @@ total_sensors=0
 current_sensor=-1
 sensors=[]
 
-link=rs485.Link("/dev/ttyUSB0")
+link=rs485.Link("/dev/ttyS2")
 LinkManagerThread=LinkManager(link)
 LinkManagerThread.start()
 
