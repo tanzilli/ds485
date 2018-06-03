@@ -2,7 +2,7 @@ import rs485
 import time
 
 # Apre la linea seriale sulla RS485
-link=rs485.Link("/dev/ttyS2")
+link=rs485.Link("/dev/ttyUSB0")
 
 while True:
 	# Invia la richiesta di lettura al nodo n.2
