@@ -15,7 +15,7 @@ Il modulo firmware principale si chiama [main.py](main.py)
 Esistono due programmi di esempio sempre in Python per poter sviluppare il master RS485 in grado di interrogare i nodi che
 sono:
 
-* [read_temp.py](read_temp.py) che legge e visualizza i dati provenienti dai concentratori DS485 sul campo
+* [readtemp.py](readtemp.py) che legge e visualizza i dati provenienti dai concentratori DS485 sul campo
 * [relay.py](relay.py) che accende e spegne un relè su un dato concentratore
 
 ## Installazione
