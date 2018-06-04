@@ -49,15 +49,6 @@
 			dbgu: serial@fffff200 {
 				status = "okay";
 			};
-			pinctrl@fffff400 {
-				w1_0 {
-					pinctrl_w1_0: w1_0-0 {
-						/* pull up on */
-						atmel,pins = <2 2 0x0 0x1>;
-					};
-				};
-
-			};
 			rtc@fffffeb0 {
 				status = "okay";
 			};
@@ -70,37 +61,21 @@
 			status = "okay";
 		};
 	};
-	leds {
-		compatible = "gpio-leds";
-		arietta_led {
-			label = "arietta_led";
-			gpios = <&pioB 8 GPIO_ACTIVE_HIGH>; /* PB8 */
-			linux,default-trigger = "heartbeat";
-
-		};
-	};
+	
 	onewire@0 {
 		compatible = "w1-gpio";
 		gpios = <&pioA 24 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_w1_0>;
 	};
 	onewire@1 {
 		compatible = "w1-gpio";
 		gpios = <&pioA 25 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_w1_0>;
 	};
 	onewire@2 {
 		compatible = "w1-gpio";
 		gpios = <&pioA 26 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_w1_0>;
 	};
 	onewire@3 {
 		compatible = "w1-gpio";
 		gpios = <&pioA 27 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_w1_0>;
 	};
 };
