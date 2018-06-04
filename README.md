@@ -18,11 +18,6 @@ sono:
 * [read_temp.py](read_temp.py) che legge e visualizza i dati provenienti dai concentratori DS485 sul campo
 * [relay.py](relay.py) che accende e spegne un relè su un dato concentratore
 
-* main.py
-  Programma da lanciare sulla scheda DS485
-* master_temp.py
-  Programma di prova per leggere le temperature dalle schede remote via RS485
-
 ## Installazione
 
   git clone https://github.com/tanzilli/ds485.git
