@@ -66,6 +66,7 @@ class LinkManager(threading.Thread):
 		threading.Thread.__init__(self)
 		self.stop_flag=False
 		self.link=link
+		self.messages_for_me=0
 
 	def run(self):
 		while self.stop_flag==False:
@@ -80,6 +81,9 @@ class LinkManager(threading.Thread):
 			try:
 				if incoming_message.get_target_node()==rs485_address:
 
+					led.on()
+					self.messages_for_me+=1
+					
 					if incoming_message.get_frame_type()==rs485.RELAY:
 						if incoming_message.get_relay_state()==1:
 							relay.on()
@@ -91,9 +95,14 @@ class LinkManager(threading.Thread):
 						sensors=SensorsReaderThread.sensors_list()
 						outgoing_message.put(sensors)
 						self.link.send(outgoing_message)
+
+					led.off()
 			except:
 				continue
 									
+	def get_messages_for_me(self):
+		return self.messages_for_me
+										
 	def stop(self):
 		self.stop_flag=True	
 
@@ -144,6 +153,7 @@ display=lcd.lcd()
 display.backlight_on()
 key=keys.KEYS()
 relay=GPIO("J4.29","OUTPUT")
+led=GPIO("PB8","OUTPUT")
 
 STATE_INIT=0
 STATE_WELCOME=1
@@ -151,7 +161,7 @@ STATE_MYADDR=2
 STATE_TEMPERATURES=3
 STATE_MYIP=4
 STATE_UPTIME=5
-STATE_ERRORS=6
+STATE_MESSAGES=6
 STATE_TEST_RELAY=7
 STATE_BACKLIGHT=8
 LAST_STATE=8
@@ -252,7 +262,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.12")		
+			display.putstring("DS-485 -- V0.13")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
@@ -298,11 +308,11 @@ try:
 			display.putstring(a[:a.rfind(".")])
 			current_state=next_state
 
-		if next_state==STATE_ERRORS:
+		if next_state==STATE_MESSAGES:
 			display.clear()	
-			display.putstring("Msg/Err")
+			display.putstring("Messages")
 			display.setcurpos(0,1)
-			display.putstring("%d/%d" % (link.get_message_counter(),link.get_error_counter()))
+			display.putstring("%d" % (LinkManagerThread.get_messages_for_me()))
 			current_state=next_state
 
 		if next_state==STATE_TEST_RELAY and current_state!=STATE_TEST_RELAY:
