@@ -1,7 +1,7 @@
 import rs485	
 import time
 
-node_addrs=[2]
+node_addrs=[1,2]
 good_packet=[0,0]
 bad_packet=[0,0]
 
@@ -11,7 +11,7 @@ link=rs485.Link("/dev/ttyUSB0")
 while True:
 	node_counter=0
 	for node_addr in node_addrs:	
-		print "TX] Nodo %d" % node_addr
+		#print "TX] Nodo %d" % node_addr
 		link.send(rs485.Packet(node_addr))
 
 		# Aspetta la risposta
@@ -22,12 +22,16 @@ while True:
 			print "RX] Node %d Timeout " % (node_addr)
 			bad_packet[node_counter]+=1
 		else:
-			sensors=reply.get()
-			for sensor in sensors:
-				print "RX] Node=%d Id=%s Temp=%.2f" % (node_addr,sensor,sensors[sensor])
-				pass
-			print " "	
-			good_packet[node_counter]+=1
+			try:
+				sensors=reply.get()
+				for sensor in sensors:
+					print "RX] Node=%d Id=%s Temp=%.2f" % (node_addr,sensor,sensors[sensor])
+					pass
+				print " "	
+				good_packet[node_counter]+=1
+			except:
+				print "RX] Error"
+				continue
 
 		node_counter+=1
 		if node_counter==2:
