@@ -64,7 +64,7 @@ class Link():
 			if (timer()-start)>timeout:
 				return None
 			inwaiting=self.serial.inWaiting()		
-			if inwaiting>1:
+			if inwaiting>0:
 				rx_buffer+=self.serial.read(inwaiting)
 				if rx_buffer.find("55555")!=-1:
 					try:
