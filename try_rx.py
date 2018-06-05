@@ -14,7 +14,11 @@ link=rs486.Link("/dev/ttyS2")
 
 rx_counter=0
 while True:
-	message=link.receive()
+	message=link.receive(1)
+	
+	if message==None:
+		print "timeout"
+		continue
 	
 	try:
 		led.on()

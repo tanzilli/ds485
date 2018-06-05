@@ -70,7 +70,7 @@ class LinkManager(threading.Thread):
 
 	def run(self):
 		while self.stop_flag==False:
-			incoming_message=self.link.receive()
+			incoming_message=self.link.receive(timeout=1)
 			
 			if incoming_message==None:
 				continue
@@ -84,11 +84,11 @@ class LinkManager(threading.Thread):
 					led.on()
 					self.messages_for_me+=1
 					
-					if incoming_message.get_frame_type()==rs485.RELAY:
-						if incoming_message.get_relay_state()==1:
-							relay.on()
-						else:
-							relay.off()
+					if incoming_message.get_frame_type()==rs485.RELAY_ON:
+						relay.on()
+
+					if incoming_message.get_frame_type()==rs485.RELAY_OFF:
+						relay.on()
 
 					if incoming_message.get_frame_type()==rs485.TEMP:
 						outgoing_message=rs485.Packet(target_node=0,frame_type=rs485.TEMP)
@@ -98,6 +98,7 @@ class LinkManager(threading.Thread):
 
 					led.off()
 			except:
+				print "RX Error"
 				continue
 									
 	def get_messages_for_me(self):
@@ -262,7 +263,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.13")		
+			display.putstring("DS-485 -- V0.14")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:

@@ -1,9 +1,11 @@
 import serial
 import pickle
 import time
+from timeit import default_timer as timer
 
 TEMP=2
-RELAY=3
+RELAY_ON=3
+RELAY_OFF=4
 
 class Packet():
 	def __init__(self,target_node,frame_type=TEMP):
@@ -23,12 +25,6 @@ class Packet():
 
 	def get_frame_type(self):
 		return self.frame_type
-
-	def set_relay_state(self,state):
-		self.relay_state=state
-
-	def get_relay_state(self):
-		return self.relay_state
 
 	def __str__(self):
 		return str(self.sensors)	
@@ -56,24 +52,29 @@ class Link():
 	def send(self,packet):
 		payload=pickle.dumps(packet)
 		self.serial.reset_output_buffer()
-		self.serial.write(payload)
+		self.serial.write(payload+"55555")
+		print len(payload)
 		self.serial.flush()
 
-	def receive(self):
+	def receive(self,timeout=0.5):
+		start = timer()
 		self.serial.reset_input_buffer()
+		rx_buffer=""
 		while True:
-			rx_buffer=self.serial.read(500)
-			if len(rx_buffer)==0:
+			if (timer()-start)>timeout:
 				return None
-			else:
-				try:
-					message=pickle.loads(rx_buffer)
-				except:
-					self.error_counter+=1
-					continue	
-
-				self.message_counter+=1
-				return message
-				
+			inwaiting=self.serial.inWaiting()		
+			if inwaiting>1:
+				rx_buffer+=self.serial.read(inwaiting)
+				if rx_buffer.find("55555")!=-1:
+					try:
+						message=pickle.loads(rx_buffer)
+						return message
+					except:
+						self.serial.reset_input_buffer()
+						rx_buffer=""
+						continue	
+				else:
+					continue			
 			
 
