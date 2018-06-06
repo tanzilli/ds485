@@ -17,13 +17,15 @@ node_addrs=[1,2]
 
 db=_mysql.connect(host="localhost",user="pi",passwd="acmesystems",db="letture")
 
-if True:
+if False:
 	db.query("DROP TABLE IF EXISTS Temperatures")
 	db.query("CREATE TABLE Temperatures(Id INT PRIMARY KEY AUTO_INCREMENT, \
 				Date DATETIME, \
 				SensorId VARCHAR(25), \
 				Temperature FLOAT \
 				)")
+
+db.query("set time_zone = '+02:00'")
 		 
 # Apre la linea seriale sulla RS485
 link=rs485.Link("/dev/ttyUSB0")
@@ -44,7 +46,7 @@ while True:
 			try:
 				sensors=reply.get()
 				for sensor in sensors:
-					sql_query="INSERT INTO Temperatures(Date,SensorId,Temperature) VALUES(now(),'%s',%.2f)" % (sensor,sensors[sensor])
+					sql_query="INSERT INTO Temperatures(Date,SensorId,Temperature) VALUES(NOW(),'%s',%.2f)" % (sensor,sensors[sensor])
 					#print sql_query
 					db.query(sql_query)
 		
