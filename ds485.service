@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 Type=idle
+WorkingDirectory=/root/ds485
 ExecStart=/usr/bin/python /root/ds485/ds485.py
 Restart=always
 User=root
