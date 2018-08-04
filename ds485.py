@@ -178,12 +178,15 @@ sensors=[]
 parser = SafeConfigParser()
 if os.path.isfile(CONFIG_FILE)==False: 
 	parser.add_section('RS485')
+	parser.add_section('W1')
 	parser.set("RS485","Address","1")
+	parser.set("W1","Showdelay","5")
 	fd = open(CONFIG_FILE,'w')
 	parser.write(fd)
 	fd.close()
 parser.read(CONFIG_FILE)
 rs485_address=int(parser.get('RS485','Address'))
+w1_show_delay=int(parser.get('W1','Showdelay'))
 
 
 link=rs485.Link("/dev/ttyS2")
@@ -263,7 +266,7 @@ try:
 		if next_state==STATE_WELCOME and current_state!=STATE_WELCOME:
 			display.clear()	
 			display.setdoublefont()
-			display.putstring("DS-485 -- V0.14")		
+			display.putstring("DS485 ---- V0.15")		
 			current_state=next_state
 
 		if next_state==STATE_TEMPERATURES:
@@ -278,7 +281,7 @@ try:
 					display.setcurpos(0,1)
 					display.putstring("    %.2f C" % sensors[sensor_id])
 				
-					for i in range(10):	
+					for i in range(w1_show_delay*10):	
 						time.sleep(0.1)
 						if key.hit():
 							break
