@@ -10,13 +10,13 @@ Il firmware è stato sviluppato interamente in Python e consente di:
 * Inviare in remoto i dati istantanei di temperatura letti
 * Consentire di pilotare il relè a bordo con comandi RS485
 
-Il modulo firmware principale si chiama [main.py](main.py)
+Il modulo firmware principale si chiama [ds485.py](ds485.py)
 
 Esistono due programmi di esempio sempre in Python per poter sviluppare il master RS485 in grado di interrogare i nodi che
 sono:
 
-* [readtemp.py](readtemp.py) che legge e visualizza i dati provenienti dai concentratori DS485 sul campo
-* [relay.py](relay.py) che accende e spegne un relè su un dato concentratore
+* [try_read.py](try_read.py) che legge e visualizza i dati provenienti dai concentratori DS485 sul campo
+* [try_relay.py](try_relay.py) che accende e spegne un relè su un dato concentratore
 
 ## Installazione
 
